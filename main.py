@@ -26,3 +26,5 @@ if __name__ == "__main__":
 
     res2 = SlidingWindowPartitioner(window_size=10).transform(res)
     print(res2)
+
+    res2[list(res2.keys())[0]].normalize()
