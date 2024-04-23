@@ -13,6 +13,7 @@ class Trajectory:
             self.values = np.array(values)
         self.latitude = self.values[0]
         self.longitude = self.values[1]
+        self.lat_lon = self.values[:2]
         self.time = self.values[2]
 
     def copy(self):
