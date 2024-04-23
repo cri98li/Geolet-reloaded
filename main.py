@@ -7,24 +7,39 @@ from sklearn.metrics import classification_report, accuracy_score, f1_score
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.tree import DecisionTreeClassifier
 
-from geoletrld.utils import Trajectories
+from geoletrld.utils import Trajectories, y_from_df
 from geoletrld.partitioners import NoPartitioner, GeohashPartitioner, FeaturePartitioner, SlidingWindowPartitioner
+from geoletrld.distances import EuclideanDistance
 
 if __name__ == "__main__":
     df = pd.read_csv('datasets/animals.zip')
 
-    res = Trajectories.from_DataFrame(df, latitude="c1", longitude="c2", time="t")
+    y = y_from_df(df, tid_name="tid", y_name="class")
 
-    res2 = NoPartitioner().transform(res)
-    print(res2)
+    trajectories = Trajectories.from_DataFrame(df, latitude="c1", longitude="c2", time="t")
 
-    res2 = GeohashPartitioner(precision=4).transform(res)
-    print(res2)
+    geolets = NoPartitioner().transform(trajectories)
+    print(geolets)
 
-    res2 = FeaturePartitioner(feature="distance", threshold=.2).transform(res)
-    print(res2)
+    geolets = GeohashPartitioner(precision=3).transform(trajectories)
+    print(geolets)
 
-    res2 = SlidingWindowPartitioner(window_size=10).transform(res)
-    print(res2)
+    geolets = FeaturePartitioner(feature="distance", threshold=.2).transform(trajectories)
+    print(geolets)
 
-    res2[list(res2.keys())[0]].normalize()
+    geolets = SlidingWindowPartitioner(window_size=10).transform(trajectories)
+    print(geolets)
+
+    best_dist, best_idx = EuclideanDistance(agg=np.sum, n_jobs=8, verbose=True)\
+        .transform(trajectories=trajectories, geolets=geolets)
+
+    print(best_dist)
+
+    X_train, X_test, y_train, y_test = train_test_split(best_dist, y, test_size=0.3, random_state=42, stratify=y)
+
+    dt = DecisionTreeClassifier().fit(X_train, y_train)
+    print("Decision Tree:\n", classification_report(y_test, dt.predict(X_test)))
+
+    rf = RandomForestClassifier(n_estimators=500).fit(X_train, y_train)
+    print("Decision Tree:\n", classification_report(y_test, rf.predict(X_test)))
+
