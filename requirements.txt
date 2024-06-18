@@ -10,3 +10,6 @@ tsaug
 tslearn
 h5py
 cageo
+TrajectoryIntervalForest
+scikit-learn-extra
+similaritymeasures
