@@ -1,0 +1,1 @@
+from .Geolet import GeoletClassifier

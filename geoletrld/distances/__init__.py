@@ -1,3 +1,9 @@
 from .DistanceInterface import DistanceInterface
 
 from .EuclideanDistance import EuclideanDistance
+from .InterpolatedTimeDistance import InterpolatedTimeDistance
+from .FeatureDistance import FeatureDistance
+from .RotatingGenericDistance import RotatingEuclideanDistance
+from .LCSSTrajectoryDistance import LCSSTrajectoryDistance
+from .FrechetDistance import FrechetDistance
+from .CaGeoDistance import CaGeoDistance

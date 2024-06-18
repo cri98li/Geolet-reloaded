@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import Any
 
 import numpy as np
 
@@ -15,6 +14,7 @@ class DistanceInterface(ABC):
     @abstractmethod
     def best_fitting(
             trajectory: Trajectory,
-            geolet: Trajectory
+            geolet: Trajectory,
+            agg=np.sum
     ) -> tuple[float, int]:
         raise NotImplementedError()
