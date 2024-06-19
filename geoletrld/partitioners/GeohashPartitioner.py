@@ -40,6 +40,6 @@ class GeohashPartitioner(PartitionerInterface):
 
             candidate_geolet[f"{count}_{k}"] = Trajectory(values=np.array(curr_trj).T)
 
-        return candidate_geolet.remove_singleton(inplace=True)
+        return candidate_geolet.remove_short_trajectories(inplace=True)
 
 

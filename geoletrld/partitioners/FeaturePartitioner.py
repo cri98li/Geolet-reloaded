@@ -21,10 +21,10 @@ class FeaturePartitioner(PartitionerInterface):
     def transform(self, X: Trajectories[Any, Trajectory]) -> Trajectories[Any, Trajectory]:
         candidate_geolet = Trajectories[Any, Trajectory]()
 
-        for k, v in tqdm(X.items(), disable=not self.verbose):
-            latitude = v.latitude
-            longitude = v.longitude
-            time = v.time
+        for k, trajectory in tqdm(X.items(), disable=not self.verbose):
+            latitude = trajectory.latitude
+            longitude = trajectory.longitude
+            time = trajectory.time
 
             feat = []
             match self.feature:
@@ -58,4 +58,4 @@ class FeaturePartitioner(PartitionerInterface):
 
                 j += 1
 
-        return candidate_geolet.remove_singleton(inplace=True)
+        return candidate_geolet.remove_short_trajectories(inplace=True)

@@ -35,13 +35,13 @@ class Trajectories(dict):
 
         return trajectories
 
-    def remove_singleton(self, inplace=True):
+    def remove_short_trajectories(self, inplace=True):
         if not inplace:
             self.copy().remove_singleton(inplace=True)
 
         keys = list(self.keys())
         for key in keys:
-            if len(self[key].time) <= 1:
+            if len(self[key].time) < 3:
                 self.pop(key)
 
         return self
