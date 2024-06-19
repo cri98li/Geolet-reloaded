@@ -19,6 +19,7 @@ class GeoletClassifier(BaseEstimator, ClassifierMixin, TransformerMixin):
                  model_to_fit: ClassifierMixin = None,
                  subset_candidate_geolet: int | float = None,
                  subset_trj_in_selection: int | float = None,
+                 verbose: bool = False
                  ):
         if not isinstance(partitioner, PartitionerInterface):
             raise ValueError('Partitioner must be an instance of PartitionerInterface')
@@ -29,7 +30,7 @@ class GeoletClassifier(BaseEstimator, ClassifierMixin, TransformerMixin):
         if not isinstance(distance, DistanceInterface):
             raise ValueError('Distance must be an instance of DistanceInterface')
 
-        if model_to_fit is not None and not isinstance(model_to_fit, ClassifierMixin):
+        if model_to_fit is not None and not isinstance(model_to_fit, BaseEstimator):
             raise ValueError('Model_to_fit must be an instance of ClassifierMixin')
 
         self.partitioner = partitioner
@@ -38,6 +39,7 @@ class GeoletClassifier(BaseEstimator, ClassifierMixin, TransformerMixin):
         self.model_to_fit = model_to_fit
         self.subset_candidate_geolet = subset_candidate_geolet
         self.subset_trj_in_selection = subset_trj_in_selection
+        self.verbose = verbose
 
         self.selected_geolets_scores = None
         self.selected_geolets = None
@@ -50,6 +52,9 @@ class GeoletClassifier(BaseEstimator, ClassifierMixin, TransformerMixin):
 
         if self.subset_candidate_geolet is not None and type(self.subset_candidate_geolet) is float:
             self.subset_candidate_geolet = int(len(X) * self.candidate_geolets)
+
+        if self.verbose:
+            print(f"Found {len(self.candidate_geolets)} candidate s")
 
         if self.subset_candidate_geolet is not None:
             candidate_geolets_to_delete = random.choices(self.candidate_geolets.keys(),
