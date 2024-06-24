@@ -23,8 +23,8 @@ class GapSelector(SelectorInterface):
 
     def select(self, geolets: Trajectories, trajectories: Trajectories = None, y: np.ndarray = None) -> \
             (Trajectories, np.ndarray):
-        if trajectories is None or y is None:
-            raise ValueError("A subset of trajectories relative target labels are required.")
+        if trajectories is None:
+            raise ValueError("A subset of trajectories is required.")
 
         dist_matrix = compute_distance_selector(geolets=geolets, trajectories=trajectories, n_jobs=self.n_jobs,
                                                 verbose=self.verbose, distance=self.distance, agg=self.agg)#geo x trj

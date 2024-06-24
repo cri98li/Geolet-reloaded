@@ -19,7 +19,7 @@ with open(path.join(here, "requirements.txt"), encoding="utf-8") as f:
 
 setup(
     name="geolet-reloaded",
-    version="0.0.1-3",
+    version="0.0.1-4",
     license="BSD-Clause-2",
     description="Package description",
     url="https://github.com/cri98li/Geolet-reloaded",
