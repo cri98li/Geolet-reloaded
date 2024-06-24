@@ -10,7 +10,7 @@ from sklearn.neighbors import LocalOutlierFactor
 from sklearn_extra.cluster import KMedoids
 from sklearn.tree import DecisionTreeClassifier
 
-from geoletrld.model import GeoletClassifier
+from geoletrld.model import Geolet
 from geoletrld.selectors import RandomSelector, MutualInformationSelector, SelectorPipeline, ClusteringSelector, \
     GapSelector
 from geoletrld.utils import Trajectories, y_from_df
@@ -32,7 +32,7 @@ if __name__ == "__main__":
     X_train = Trajectories([(k, trajectories[k]) for k in X_train])
     X_test = Trajectories([(k, trajectories[k]) for k in X_test])
 
-    classifier = GeoletClassifier(
+    classifier = Geolet(
         partitioner=GeohashPartitioner(precision=7),
         selector=SelectorPipeline(
             RandomSelector(k=500),

@@ -1,1 +1,1 @@
-from .Geolet import GeoletClassifier
+from .Geolet import Geolet
