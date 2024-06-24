@@ -4,13 +4,13 @@ import matplotlib.pyplot as plt
 import tqdm.auto as tqdm
 from sklearn.cluster import KMeans, AffinityPropagation, OPTICS, SpectralClustering
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import classification_report, accuracy_score, f1_score
+from sklearn.metrics import classification_report, accuracy_score, f1_score, silhouette_score
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import LocalOutlierFactor
 from sklearn_extra.cluster import KMedoids
 from sklearn.tree import DecisionTreeClassifier
 
-from geoletrld.classifier import GeoletClassifier
+from geoletrld.model import GeoletClassifier
 from geoletrld.selectors import RandomSelector, MutualInformationSelector, SelectorPipeline, ClusteringSelector, \
     GapSelector
 from geoletrld.utils import Trajectories, y_from_df
@@ -33,24 +33,26 @@ if __name__ == "__main__":
     X_test = Trajectories([(k, trajectories[k]) for k in X_test])
 
     classifier = GeoletClassifier(
-        partitioner=GeohashPartitioner(precision=6),
+        partitioner=GeohashPartitioner(precision=7),
         selector=SelectorPipeline(
             RandomSelector(k=500),
-            #MutualInformationSelector(n_jobs=8, k=30)
+            #MutualInformationSelector(n_jobs=8, k=30),
             #GapSelector(k=5, n_jobs=10),
             ClusteringSelector(
                 #KMeans(n_clusters=5), #è sbagliato?, ma funziona stranamente bene
-                KMedoids(n_clusters=5, metric='precomputed'), #distance=RotatingEuclideanDistance(verbose=True), n_jobs=9
+                KMedoids(n_clusters=30, metric='precomputed'),# n_jobs=9
                 #AffinityPropagation(affinity="precomputed"), agg=lambda x: -np.sum(x),
                 #OPTICS(metric="precomputed"),
                 #SpectralClustering(affinity="precomputed"), agg=lambda x: -np.sum(x), #non gira
+                #distance=LCSSTrajectoryDistance(n_jobs=10, verbose=True)
             )
         ),
-        distance=CaGeoDistance(n_jobs=10, verbose=True), #LCSSTrajectoryDistance(n_jobs=1, verbose=True),#RotatingEuclideanDistance(verbose=True, n_jobs=9, return_rot=True), #EuclideanDistance()
+        distance=LCSSTrajectoryDistance(n_jobs=9, verbose=True), #EuclideanDistance(n_jobs=10, verbose=True),
         model_to_fit=RandomForestClassifier(n_estimators=500, class_weight="balanced", random_state=32),
     ).fit(X_train, y_train)
 
     print("Random Forest:\n", classification_report(y_test, classifier.predict(X_test)))
+    #print(silhouette_score(classifier.transform(X_train), classifier.predict(X_train)))
 
     """geolets = NoPartitioner().transform(trajectories)
     print(geolets)
