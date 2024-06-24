@@ -18,13 +18,13 @@ with open(path.join(here, "requirements.txt"), encoding="utf-8") as f:
 
 
 setup(
-    name="Geolet",
+    name="geolet-reloaded",
     version="0.0.1",
     license="BSD-Clause-2",
     description="Package description",
-    url="https://github.com/cri98li/Geolet",
-    author="Author Name",
-    author_email="email",
+    url="https://github.com/cri98li/Geolet-reloaded",
+    author="Cristiano Landi",
+    author_email="cristiano.landi@phd.unipi.it",
     classifiers=[
         # How mature is this project? Common values are
         #   3 - Alpha
@@ -54,8 +54,8 @@ setup(
             "*.test.*",
             "test.*",
             "test",
-            "trajectory_toolkit.test",
-            "trajectory_toolkit.test.*",
+            "geolet.test",
+            "geolet.test.*",
         ]
     ),
 )
