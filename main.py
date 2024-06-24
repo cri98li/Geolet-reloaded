@@ -19,8 +19,8 @@ from geoletrld.distances import EuclideanDistance, InterpolatedTimeDistance, LCS
 
 
 if __name__ == "__main__":
-    df = pd.read_csv('datasets/vehicles.zip')
-    df[["c1", "c2"]] /= 10**5
+    df = pd.read_csv('datasets/animals.zip')
+    #df[["c1", "c2"]] /= 10**5
     #df = pd.read_csv("datasets/animals.zip")
 
     y = y_from_df(df, tid_name="tid", y_name="class")
@@ -47,12 +47,13 @@ if __name__ == "__main__":
                 #distance=LCSSTrajectoryDistance(n_jobs=10, verbose=True)
             )
         ),
-        distance=LCSSTrajectoryDistance(n_jobs=9, verbose=True), #EuclideanDistance(n_jobs=10, verbose=True),
-        model_to_fit=RandomForestClassifier(n_estimators=500, class_weight="balanced", random_state=32),
-    ).fit(X_train, y_train)
+        distance=EuclideanDistance(n_jobs=10, verbose=True),
+        #model_to_fit=RandomForestClassifier(n_estimators=500, class_weight="balanced", random_state=32),
+        model_to_fit=KMeans(n_clusters=2)
+    ).fit(trajectories, y)
 
-    print("Random Forest:\n", classification_report(y_test, classifier.predict(X_test)))
-    #print(silhouette_score(classifier.transform(X_train), classifier.predict(X_train)))
+    #print("Random Forest:\n", classification_report(y_test, classifier.predict(X_test)))
+    print(silhouette_score(classifier.transform(X_train), classifier.predict(X_train)))
 
     """geolets = NoPartitioner().transform(trajectories)
     print(geolets)

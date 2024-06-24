@@ -16,7 +16,7 @@ class Geolet(BaseEstimator, ClassifierMixin, TransformerMixin):
                  partitioner: PartitionerInterface,
                  selector: SelectorInterface,
                  distance: DistanceInterface,
-                 model_to_fit: ClassifierMixin = None,
+                 model_to_fit: BaseEstimator = None,
                  subset_candidate_geolet: int | float = None,
                  subset_trj_in_selection: int | float = None,
                  verbose: bool = False

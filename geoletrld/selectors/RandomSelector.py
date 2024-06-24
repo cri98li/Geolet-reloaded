@@ -14,6 +14,6 @@ class RandomSelector(SelectorInterface):
         random.seed(self.random_state)
 
     def select(self, geolets: Trajectories, trajectories: Trajectories = None, y: np.ndarray = None):
-        selected_geolets_keys = random.sample(list(geolets.keys()), k=self.k)
+        selected_geolets_keys = random.sample(list(geolets.keys()), k=min(len(geolets), self.k))
 
         return dict([(k, geolets[k]) for k in selected_geolets_keys]), np.random.rand(self.k)
