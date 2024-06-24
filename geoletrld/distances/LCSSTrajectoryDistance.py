@@ -64,7 +64,7 @@ class LCSSTrajectoryDistance(DistanceInterface):
         if not trajectory.is_normalized():
             trajectory = trajectory.normalize(inplace=False)
 
-        dist_matrix = np.zeros((len_geo+1, len_trajectory+1), dtype=int)
+        dist_matrix = np.zeros((len_geo+1, len_trajectory+1), dtype=float)
         len_matrix = np.zeros((len_geo+1, len_trajectory+1), dtype=int)
         for i in range(len_geo):
             for j in range(len_trajectory):
@@ -78,7 +78,7 @@ class LCSSTrajectoryDistance(DistanceInterface):
                 trj_time = trajectory.time[j]
 
                 if abs(geo_time-trj_time) <= max_time and dist <= max_dist:
-                    dist_matrix[i+1, j+1] = dist + dist_matrix[i, j]
+                    dist_matrix[i+1, j+1] = dist/max_dist + dist_matrix[i, j]
                     len_matrix[i+1, j+1] = 1 + len_matrix[i, j]
                 else:
                     if dist_matrix[i+1, j] > dist_matrix[i, j+1]:
