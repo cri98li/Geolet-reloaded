@@ -11,7 +11,7 @@ from geoletrld.selectors import SelectorInterface
 from geoletrld.utils import Trajectories
 
 
-class GeoletClassifier(BaseEstimator, ClassifierMixin, TransformerMixin):
+class Geolet(BaseEstimator, ClassifierMixin, TransformerMixin):
     def __init__(self,
                  partitioner: PartitionerInterface,
                  selector: SelectorInterface,
