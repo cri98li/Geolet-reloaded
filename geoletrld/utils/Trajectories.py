@@ -37,7 +37,7 @@ class Trajectories(dict):
 
     def remove_short_trajectories(self, inplace=True):
         if not inplace:
-            self.copy().remove_singleton(inplace=True)
+            self.copy().remove_short_trajectories(inplace=True)
 
         keys = list(self.keys())
         for key in keys:
