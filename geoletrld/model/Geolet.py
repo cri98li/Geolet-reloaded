@@ -51,21 +51,21 @@ class Geolet(BaseEstimator, ClassifierMixin, TransformerMixin):
         self.candidate_geolets = self.partitioner.transform(X)
 
         if self.subset_candidate_geolet is not None and type(self.subset_candidate_geolet) is float:
-            self.subset_candidate_geolet = int(len(X) * self.candidate_geolets)
+            self.subset_candidate_geolet = int(len(X) * self.subset_candidate_geolet)
 
         if self.verbose:
-            print(f"Found {len(self.candidate_geolets)} candidate s")
+            print(f"Found {len(self.candidate_geolets)} candidate geolet")
 
         if self.subset_candidate_geolet is not None:
-            candidate_geolets_to_delete = random.choices(self.candidate_geolets.keys(),
+            candidate_geolets_to_delete = random.sample(list(self.candidate_geolets.keys()),
                                                          k=len(self.candidate_geolets) - self.subset_candidate_geolet)
 
             for geo_id in candidate_geolets_to_delete:
                 self.candidate_geolets.pop(geo_id)
 
-        self.sub_x = copy.copy(X)
+        self.sub_x = copy.deepcopy(X)
         if self.subset_trj_in_selection is not None:
-            candidate_trj_to_delete = random.choices(self.subset_trj_in_selection.keys(),
+            candidate_trj_to_delete = random.sample(list(self.sub_x.keys()),
                                                      k=len(X) - self.subset_trj_in_selection)
 
             for trj_id in candidate_trj_to_delete:
