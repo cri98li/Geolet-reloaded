@@ -65,7 +65,7 @@ class CaGeoDistance(DistanceInterface):
     def best_fitting(
             trajectory: Trajectory,
             geolet: Trajectory,
-            agg=np.sum,
+            agg=cosine_distance,
     ) -> tuple:
         len_geo = len(geolet.latitude)
         len_trajectory = len(trajectory.latitude)
@@ -79,7 +79,10 @@ class CaGeoDistance(DistanceInterface):
         res = np.zeros(len_trajectory - len_geo + 1)
         for i in range(len_trajectory - len_geo + 1):
             sub_trj_cageo = compute_feature(trajectory.values[:, i:i + len_geo])
-            res[i] = agg(np.abs(sub_trj_cageo - geo_cageo))
+            if agg == cosine_distance:
+                res[i] = cosine_distance(sub_trj_cageo, geo_cageo)
+            else:
+                res[i] = agg(np.abs(sub_trj_cageo - geo_cageo))
 
         return min(res), np.argmin(res)
 
@@ -108,11 +111,11 @@ def compute_feature(trajectory, n_intervals=1, kwags=None):
         dist = np.nan_to_num(bf.distance(X_lat_sub, X_lon_sub, accurate=False))
 
         transformed = [
-            np.nan_to_num(bf.speed(X_lat_sub, X_lon_sub, X_time_sub, accurate=dist[1:])),
+            np.nan_to_num(bf.speed(X_lat_sub, X_lon_sub, X_time_sub, accurate=dist[1:]), posinf=.0, neginf=.0),
             dist,
-            np.nan_to_num(bf.direction(X_lat_sub, X_lon_sub)),
-            np.nan_to_num(bf.turningAngles(X_lat_sub, X_lon_sub)),
-            np.nan_to_num(bf.acceleration(X_lat_sub, X_lon_sub, X_time_sub, accurate=dist[1:])),
+            np.nan_to_num(bf.direction(X_lat_sub, X_lon_sub), posinf=.0, neginf=.0),
+            np.nan_to_num(bf.turningAngles(X_lat_sub, X_lon_sub), posinf=.0, neginf=.0),
+            np.nan_to_num(bf.acceleration(X_lat_sub, X_lon_sub, X_time_sub, accurate=dist[1:]), posinf=.0, neginf=.0),
         ]
 
         for arr in tqdm(transformed, disable=not verbose, desc="computing aggregate features", leave=False, position=1):
@@ -125,4 +128,6 @@ def compute_feature(trajectory, n_intervals=1, kwags=None):
         feature.append([np.nan_to_num(sf.intensityUse(X_lat_sub, X_lon_sub))])
         feature.append([np.nan_to_num(sf.sinuosity(X_lat_sub, X_lon_sub))])
 
-    return np.array(feature)
+    feature = np.array(feature)
+
+    return np.nan_to_num(feature, posinf=.0, neginf=.0)

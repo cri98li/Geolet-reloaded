@@ -15,6 +15,6 @@ class DistanceInterface(ABC):
     def best_fitting(
             trajectory: Trajectory,
             geolet: Trajectory,
-            agg=np.sum
+            **kwargs
     ) -> tuple[float, int]:
         raise NotImplementedError()

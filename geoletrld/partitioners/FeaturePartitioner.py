@@ -31,11 +31,11 @@ class FeaturePartitioner(PartitionerInterface):
                 case "time":
                     feat = time
                 case "distance":
-                    feat = np.cumsum(bf.distance(latitude, longitude))
+                    feat = np.cumsum(bf.distance(latitude, longitude)*1000)
                 case "speed":
-                    feat = bf.speed(latitude, longitude, time)
+                    feat = bf.speed(latitude, longitude, time) * 3600
                 case "acceleration":
-                    feat = bf.acceleration(latitude, longitude, time)
+                    feat = bf.acceleration(latitude, longitude, time) * 3600
 
             old_j = 0
             c = 0

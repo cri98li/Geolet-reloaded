@@ -12,9 +12,8 @@ from geoletrld.utils import Trajectories, Trajectory
 
 
 class GapSelector(SelectorInterface):
-    def __init__(self, k: int | float = 10, distance: DistanceInterface = EuclideanDistance, agg=np.sum,
-                 n_jobs: int = 1, random_state: int = 42, verbose: bool = True):
-        self.agg = agg
+    def __init__(self, k: int | float = 10, distance: DistanceInterface = EuclideanDistance(), n_jobs: int = 1,
+                 random_state: int = 42, verbose: bool = False):
         self.random_state = random_state
         self.k = k
         self.verbose = verbose
@@ -27,7 +26,7 @@ class GapSelector(SelectorInterface):
             raise ValueError("A subset of trajectories is required.")
 
         dist_matrix = compute_distance_selector(geolets=geolets, trajectories=trajectories, n_jobs=self.n_jobs,
-                                                verbose=self.verbose, distance=self.distance, agg=self.agg)#geo x trj
+                                                verbose=self.verbose, distance=self.distance)#geo x trj
 
         selected_geolets_position = set()
         selected_geolets_gap_scores = []

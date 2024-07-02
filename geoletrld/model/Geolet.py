@@ -88,7 +88,7 @@ class Geolet(BaseEstimator, ClassifierMixin, TransformerMixin):
 
     def predict(self, X: Trajectories):
         if self.model_to_fit is None:
-            raise ValueError('Model_to_fit must be not None')
+            raise ValueError('No model to fit')
 
         self.dist_matrix, self.best_i = self.distance.transform(trajectories=X, geolets=self.selected_geolets)
 

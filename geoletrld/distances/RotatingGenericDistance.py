@@ -11,10 +11,9 @@ from geoletrld.utils import Trajectory, Trajectories
 from geoletrld.distances import EuclideanDistance
 
 
-class RotatingEuclideanDistance(DistanceInterface):
-    def __init__(self, best_fitting_distance, agg=np.sum, return_rot: bool = False, n_jobs=1, verbose=False):
+class RotatingGenericDistance(DistanceInterface):
+    def __init__(self, best_fitting_distance, return_rot: bool = False, n_jobs=1, verbose=False):
         self._best_fitting_distance = best_fitting_distance
-        self.agg = agg
         self.return_rot = return_rot
 
         self.n_jobs = n_jobs
@@ -49,23 +48,21 @@ class RotatingEuclideanDistance(DistanceInterface):
         best_idx = np.zeros(len(geolets))
         angles = np.zeros(len(geolets))
         for i, (_, geolet) in enumerate(geolets.items()):
-            distances[i], best_idx[i], angles[i] = RotatingEuclideanDistance.best_fitting(
+            distances[i], best_idx[i], angles[i] = RotatingGenericDistance.best_fitting(
                 trajectory=trajectory,
                 geolet=geolet.normalize(),
                 best_fitting_distance=self._best_fitting_distance,
-                agg=self.agg,
                 return_rot=True
             )
 
         return distances, best_idx, angles
 
     @staticmethod
-    def best_fitting(trajectory: Trajectory, geolet: Trajectory, best_fitting_distance, agg=np.sum,
-                     return_rot: bool = False) -> tuple:
+    def best_fitting(trajectory: Trajectory, geolet: Trajectory, distance, return_rot: bool = False) -> tuple:
         bounds = Bounds([0], [2 * math.pi], )
-        result = shgo(_objective_function, sampling_method="sobol", args=(trajectory, geolet, agg), bounds=bounds)
+        result = shgo(_objective_function, sampling_method="sobol", args=(trajectory, geolet), bounds=bounds)
         angle = result.x
-        dist, idx = best_fitting_distance(trajectory=trajectory, geolet=rotate(geolet, angle), agg=agg)
+        dist, idx = distance.best_fitting(trajectory=trajectory, geolet=rotate(geolet, angle))
 
         if return_rot:
             return dist, idx, angle
@@ -73,6 +70,10 @@ class RotatingEuclideanDistance(DistanceInterface):
             return dist, idx
 
 
-def _objective_function(angle, trajectory: Trajectory, geolet: Trajectory, agg=np.sum):
+def _objective_function(angle, trajectory: Trajectory, geolet: Trajectory, distance):
     rotated_geolet = rotate(geolet.copy(), angle)
-    return EuclideanDistance.best_fitting(trajectory=trajectory, geolet=rotated_geolet, agg=agg)[0]
+
+    geolets = Trajectories()
+    geolets["demo"] = rotated_geolet
+
+    return distance._compute_distances_selector(trajectory=trajectory, geolet=geolets)[0][0]

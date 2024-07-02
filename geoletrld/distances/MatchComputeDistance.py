@@ -7,10 +7,10 @@ from geoletrld.distances.DistanceInterface import DistanceInterface
 from geoletrld.utils import Trajectory, Trajectories
 
 
-class FeatureDistance(DistanceInterface):
-    def __init__(self, n_intervals_geolet=1, interval_type="obs", agg=np.sum, n_jobs=1, verbose=False):
-        self.n_intervals_geolet = n_intervals_geolet
-        self.interval_type = interval_type
+class MatchComputeDistance(DistanceInterface):
+    def __init__(self, best_fitting_distance1, best_fitting_distance2, agg=np.sum, n_jobs=1, verbose=False):
+        self.best_fitting_distance1 = best_fitting_distance1
+        self.best_fitting_distance2 = best_fitting_distance2
         self.agg = agg
 
         self.n_jobs = n_jobs
@@ -45,9 +45,11 @@ class FeatureDistance(DistanceInterface):
         distances = np.zeros(len(geolets))
         best_idx = np.zeros(len(geolets))
         for i, (_, geolet) in enumerate(geolets.items()):
-            distances[i], best_idx[i] = FeatureDistance.best_fitting(
+            distances[i], best_idx[i] = MatchComputeDistance.best_fitting(
                 trajectory=trajectory,
                 geolet=geolet.normalize(),
+                best_fitting_distance1=self.best_fitting_distance1,
+                best_fitting_distance2=self.best_fitting_distance2,
                 agg=self.agg)
 
         return distances, best_idx
@@ -56,7 +58,9 @@ class FeatureDistance(DistanceInterface):
     def best_fitting(
             trajectory: Trajectory,
             geolet: Trajectory,
-            agg=np.sum
+            best_fitting_distance1,
+            best_fitting_distance2,
+            agg=np.sum,
     ) -> tuple:
         len_geo = len(geolet.latitude)
         len_trajectory = len(trajectory.latitude)
@@ -65,9 +69,15 @@ class FeatureDistance(DistanceInterface):
             #return EuclideanDistance.best_fitting(geolet, trajectory, agg=np.sum)
             return .0, -1
 
-        res = np.zeros(len_trajectory - len_geo + 1)
-        for i in range(len_trajectory - len_geo + 1):
-            trj_normalized, _ = Trajectory._first_point_normalize(trajectory.lat_lon[:, i:i + len_geo])
-            res[i] = agg(((trj_normalized - geolet.lat_lon) ** 2))
+        _, idx = best_fitting_distance1(trajectory, geolet, agg=agg)
 
-        return min(res), np.argmin(res)
+        sub_trj = Trajectory(values=trajectory.values[:, idx:idx + len_geo])
+
+        dist, _ = best_fitting_distance2(sub_trj, geolet, agg=agg)
+
+        if not np.isfinite(dist):
+            print("HERE")
+
+        dist, _ = best_fitting_distance2(sub_trj, geolet, agg=agg)
+
+        return dist, idx

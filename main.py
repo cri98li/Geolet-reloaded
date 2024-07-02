@@ -15,12 +15,12 @@ from geoletrld.selectors import RandomSelector, MutualInformationSelector, Selec
     GapSelector
 from geoletrld.utils import Trajectories, y_from_df
 from geoletrld.partitioners import NoPartitioner, GeohashPartitioner, FeaturePartitioner, SlidingWindowPartitioner
-from geoletrld.distances import EuclideanDistance, InterpolatedTimeDistance, LCSSTrajectoryDistance, FrechetDistance, CaGeoDistance
+from geoletrld.distances import (EuclideanDistance, InterpolatedTimeDistance, LCSSTrajectoryDistance, FrechetDistance,
+                                 CaGeoDistance, MatchComputeDistance)
 
 
 if __name__ == "__main__":
-    df = pd.read_csv('datasets/animals.zip')
-    #df[["c1", "c2"]] /= 10**5
+    df = pd.read_csv('benchmark/datasets/vehicles.zip')
     #df = pd.read_csv("datasets/animals.zip")
 
     y = y_from_df(df, tid_name="tid", y_name="class")
@@ -36,24 +36,24 @@ if __name__ == "__main__":
         partitioner=GeohashPartitioner(precision=7),
         selector=SelectorPipeline(
             RandomSelector(k=500),
-            #MutualInformationSelector(n_jobs=8, k=30),
-            #GapSelector(k=5, n_jobs=10),
-            ClusteringSelector(
+            MutualInformationSelector(n_jobs=8, k=30, distance=MatchComputeDistance(EuclideanDistance.best_fitting, CaGeoDistance.best_fitting)),
+            #GapSelector(k=5, n_jobs=10, distance=MatchComputeDistance(EuclideanDistance.best_fitting, LCSSTrajectoryDistance.best_fitting)),
+            #ClusteringSelector(
                 #KMeans(n_clusters=5), #è sbagliato?, ma funziona stranamente bene
-                KMedoids(n_clusters=30, metric='precomputed'),# n_jobs=9
+                #KMedoids(n_clusters=30, metric='precomputed'),# n_jobs=9
                 #AffinityPropagation(affinity="precomputed"), agg=lambda x: -np.sum(x),
                 #OPTICS(metric="precomputed"),
                 #SpectralClustering(affinity="precomputed"), agg=lambda x: -np.sum(x), #non gira
                 #distance=LCSSTrajectoryDistance(n_jobs=10, verbose=True)
-            )
+            #)
         ),
-        distance=EuclideanDistance(n_jobs=10, verbose=True),
-        #model_to_fit=RandomForestClassifier(n_estimators=500, class_weight="balanced", random_state=32),
-        model_to_fit=KMeans(n_clusters=2)
-    ).fit(trajectories, y)
+        distance=MatchComputeDistance(EuclideanDistance.best_fitting, CaGeoDistance.best_fitting),
+        model_to_fit=RandomForestClassifier(n_estimators=500, class_weight="balanced", random_state=32),
+        #model_to_fit=KMeans(n_clusters=2)
+    ).fit(X_train, y_train)
 
-    #print("Random Forest:\n", classification_report(y_test, classifier.predict(X_test)))
-    print(silhouette_score(classifier.transform(X_train), classifier.predict(X_train)))
+    print("Random Forest:\n", classification_report(y_test, classifier.predict(X_test)))
+    #print(silhouette_score(classifier.transform(X_train), classifier.predict(X_train)))
 
     """geolets = NoPartitioner().transform(trajectories)
     print(geolets)

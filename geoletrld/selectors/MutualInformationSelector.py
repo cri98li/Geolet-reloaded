@@ -11,9 +11,8 @@ from geoletrld.utils import Trajectories, Trajectory
 
 
 class MutualInformationSelector(SelectorInterface):
-    def __init__(self, k: int | float = 10, distance: DistanceInterface = EuclideanDistance, agg=np.sum,
-                 n_jobs: int = 1, random_state: int = 42, verbose: bool = True):
-        self.agg = agg
+    def __init__(self, k: int | float = 10, distance: DistanceInterface = EuclideanDistance(), n_jobs: int = 1,
+                 random_state: int = 42, verbose: bool = False):
         self.random_state = random_state
         self.k = k
         self.verbose = verbose
@@ -26,7 +25,7 @@ class MutualInformationSelector(SelectorInterface):
             raise ValueError("A subset of trajectories relative target labels are required.")
 
         dist_matrix = compute_distance_selector(geolets=geolets, trajectories=trajectories, n_jobs=self.n_jobs,
-                                                verbose=self.verbose, distance=self.distance, agg=self.agg)
+                                                verbose=self.verbose, distance=self.distance)
 
         mi = mutual_info_classif(dist_matrix, y=y, random_state=self.random_state)
 

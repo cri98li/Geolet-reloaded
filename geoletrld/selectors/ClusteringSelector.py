@@ -11,13 +11,13 @@ from geoletrld.utils import Trajectories
 
 class ClusteringSelector(SelectorInterface):
 
-    def __init__(self, clustering_fun=KMeans(n_clusters=10), distance: DistanceInterface = EuclideanDistance,
-                 agg=np.sum, n_jobs: int = 1, verbose: bool = True):
+    def __init__(self, clustering_fun=KMeans(n_clusters=10), distance: DistanceInterface = EuclideanDistance(),
+                 use_sim=False, n_jobs: int = 1, verbose: bool = False):
         self.verbose = verbose
         self.clustering_fun = clustering_fun
         self.distance = distance
+        self.use_sim = use_sim
         self.n_jobs = n_jobs
-        self.agg = agg
 
     def select(self, geolets: Trajectories, trajectories: Trajectories = None, y: np.ndarray = None) -> (
             Trajectories, np.ndarray):
@@ -28,7 +28,10 @@ class ClusteringSelector(SelectorInterface):
         geolets_keys = np.array(list(geolets.keys()))
 
         dist_matrix = compute_symmetric_distance_selector(geolets=geolets, n_jobs=self.n_jobs, verbose=self.verbose,
-                                                          distance=self.distance, agg=self.agg)
+                                                          distance=self.distance)
+
+        if self.use_sim:
+            dist_matrix *= -1
 
         self.labels = self.clustering_fun.fit_predict(dist_matrix)
 

@@ -10,7 +10,7 @@ from geoletrld.utils.Trajectory import Trajectory
 
 
 class GeohashPartitioner(PartitionerInterface):
-    def __init__(self, precision, verbose=True):
+    def __init__(self, precision, verbose=False):
         self.precision = precision
         self.verbose = verbose
 

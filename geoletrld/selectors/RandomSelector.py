@@ -7,7 +7,7 @@ from geoletrld.utils import Trajectories
 
 
 class RandomSelector(SelectorInterface):
-    def __init__(self, k: int | float = 10, random_state: int = 42, verbose: bool = True):
+    def __init__(self, k: int | float = 10, random_state: int = 42, verbose: bool = False):
         self.k = k
         self.verbose = verbose
         self.random_state = random_state
