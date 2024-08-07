@@ -63,10 +63,8 @@ class InterpolatedTimeDistance(DistanceInterface):
         i_end = 1
         res = []
         res_t_start = []
-        while True:
+        while i_end != len(trajectory.time):
             curr_trj_len = trajectory.time[i_end]-trajectory.time[i_start]
-            if i_end == len(trajectory.time):
-                break
             if len_geo <= curr_trj_len:
                 res.append(_ITD(trajectory.values[:, i_start:i_end], geolet.values, agg))
                 res_t_start.append(i_start)
