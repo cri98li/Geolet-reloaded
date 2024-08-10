@@ -4,6 +4,7 @@ import os
 import pickle
 import sys
 import time
+from hashlib import md5
 from itertools import product
 
 n_workers_per_test = 8
@@ -193,8 +194,9 @@ def main(MODE):
 
                 hyper_to_test = list(product(*hyper.values()))
 
-                print(f"n_parallel test: {psutil.cpu_count(logical=False) // n_workers_per_test} "
-                      f"each using {n_workers_per_test} cores", )
+                max_workers = max(psutil.cpu_count(logical=False) // n_workers_per_test, 1)
+
+                print(f"n_parallel test: {max_workers} each using {n_workers_per_test} cores", )
                 print(f"\r\n{dataset_name}\r\n")
                 table = ProgressTable(pbar_embedded=False,
                                       pbar_show_progress=True,
@@ -202,13 +204,12 @@ def main(MODE):
                                       pbar_show_throughput=False,
                                       num_decimal_places=3)
                 semaphore = multiprocessing.Semaphore(1)
-                with BoundedQueueProcessPoolExecutor(max_workers=psutil.cpu_count(logical=False) // n_workers_per_test,
-                                                     max_waiting_tasks=psutil.cpu_count(
-                                                         logical=False) // n_workers_per_test // 2) as exe:
+
+                with BoundedQueueProcessPoolExecutor(max_workers=max_workers, max_waiting_tasks=max_workers) as exe:
                     for hyper_set in table(hyper_to_test):
                         hyper_set_str = "_".join([str(el) for el in hyper_set])
                         filename = f"{MODE}_{dataset_name}_{hyper_set_str}_{i}"
-                        filename_hash = hash(filename)
+                        filename_hash = md5(filename.encode()).hexdigest()
                         path = f"transformations/{MODE}/{filename_hash}.csv"
                         if os.path.exists(path):
                             semaphore.acquire()
