@@ -16,6 +16,7 @@ class ClusteringSelector(SelectorInterface):
         self.verbose = verbose
         self.clustering_fun = clustering_fun
         self.distance = distance
+        self.distance.n_jobs = n_jobs
         self.use_sim = use_sim
         self.n_jobs = n_jobs
 
@@ -50,3 +51,6 @@ class ClusteringSelector(SelectorInterface):
             scores = self.intra_cluster_distance[self.labels == label][min_idx]
 
         return res, scores
+
+    def __str__(self):
+        return f"Cluster({self.clustering_fun}, {self.distance}, {self.use_sim}, {self.n_jobs}, {self.verbose})"

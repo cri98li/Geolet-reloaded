@@ -58,7 +58,9 @@ class Geolet(BaseEstimator, ClassifierMixin, TransformerMixin):
 
         if self.subset_candidate_geolet is not None:
             candidate_geolets_to_delete = random.sample(list(self.candidate_geolets.keys()),
-                                                         k=len(self.candidate_geolets) - self.subset_candidate_geolet)
+                                                        k=max(0,
+                                                              len(self.candidate_geolets) -
+                                                              self.subset_candidate_geolet))
 
             for geo_id in candidate_geolets_to_delete:
                 self.candidate_geolets.pop(geo_id)
@@ -66,7 +68,7 @@ class Geolet(BaseEstimator, ClassifierMixin, TransformerMixin):
         self.sub_x = copy.deepcopy(X)
         if self.subset_trj_in_selection is not None:
             candidate_trj_to_delete = random.sample(list(self.sub_x.keys()),
-                                                     k=len(X) - self.subset_trj_in_selection)
+                                                    k=max(0, len(X) - self.subset_trj_in_selection))
 
             for trj_id in candidate_trj_to_delete:
                 self.sub_x.pop(trj_id)

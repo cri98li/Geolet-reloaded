@@ -59,3 +59,6 @@ class FeaturePartitioner(PartitionerInterface):
                 j += 1
 
         return candidate_geolet.remove_short_trajectories(inplace=True)
+
+    def __str__(self):
+        return f"Feature({self.feature}, {self.threshold}, {self.overlapping}, {self.verbose})"

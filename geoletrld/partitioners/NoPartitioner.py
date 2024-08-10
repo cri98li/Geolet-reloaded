@@ -14,3 +14,6 @@ class NoPartitioner(PartitionerInterface):
             return_val[f"{i}_{k}"] = v.copy()
 
         return return_val
+
+    def __str__(self):
+        return f"NoPartition()"

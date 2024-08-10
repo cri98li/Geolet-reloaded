@@ -12,8 +12,9 @@ from geoletrld.distances import EuclideanDistance
 
 
 class RotatingGenericDistance(DistanceInterface):
-    def __init__(self, best_fitting_distance, return_rot: bool = False, n_jobs=1, verbose=False):
-        self._best_fitting_distance = best_fitting_distance
+    def __init__(self, distance, return_rot: bool = False, n_jobs=1, verbose=False):
+        self.distance = distance
+        self.distance.n_jobs = n_jobs
         self.return_rot = return_rot
 
         self.n_jobs = n_jobs
@@ -51,7 +52,7 @@ class RotatingGenericDistance(DistanceInterface):
             distances[i], best_idx[i], angles[i] = RotatingGenericDistance.best_fitting(
                 trajectory=trajectory,
                 geolet=geolet.normalize(),
-                best_fitting_distance=self._best_fitting_distance,
+                best_fitting_distance=self.distance,
                 return_rot=True
             )
 
@@ -69,6 +70,9 @@ class RotatingGenericDistance(DistanceInterface):
         else:
             return dist, idx
 
+    def __str__(self):
+        return f"Rotating({self.distance}, {self.return_rot}, {self.n_jobs}, {self.verbose})"
+
 
 def _objective_function(angle, trajectory: Trajectory, geolet: Trajectory, distance):
     rotated_geolet = rotate(geolet.copy(), angle)
@@ -76,4 +80,4 @@ def _objective_function(angle, trajectory: Trajectory, geolet: Trajectory, dista
     geolets = Trajectories()
     geolets["demo"] = rotated_geolet
 
-    return distance._compute_distances_selector(trajectory=trajectory, geolet=geolets)[0][0]
+    return distance._compute_dist_geolets_trajectory(trajectory=trajectory, geolets=geolets)[0][0]

@@ -9,8 +9,7 @@ from geoletrld.utils import Trajectory, Trajectories
 
 
 class FrechetDistance(DistanceInterface):
-    def __init__(self, agg=np.sum, n_jobs=1, verbose=False):
-        self.agg = agg
+    def __init__(self, n_jobs=1, verbose=False):
 
         self.n_jobs = n_jobs
         self.verbose = verbose
@@ -46,8 +45,7 @@ class FrechetDistance(DistanceInterface):
         for i, (_, geolet) in enumerate(geolets.items()):
             distances[i], best_idx[i] = FrechetDistance.best_fitting(
                 trajectory=trajectory,
-                geolet=geolet.normalize(),
-                agg=self.agg)
+                geolet=geolet.normalize())
 
         return distances, best_idx
 
@@ -55,7 +53,6 @@ class FrechetDistance(DistanceInterface):
     def best_fitting(
             trajectory: Trajectory,
             geolet: Trajectory,
-            agg=np.sum,
             resample=False
     ) -> tuple:
         if resample:
@@ -65,7 +62,6 @@ class FrechetDistance(DistanceInterface):
         len_trajectory = len(trajectory.latitude)
 
         if len_geo > len_trajectory:
-            # return EuclideanDistance.best_fitting(geolet, trajectory, agg=np.sum)
             return .0, -1
 
         res = np.zeros(len_trajectory - len_geo + 1)
@@ -88,7 +84,6 @@ class FrechetDistance(DistanceInterface):
         len_trajectory = trajectory.shape[1]
 
         if len_geo > len_trajectory:
-            #return EuclideanDistance.best_fitting(geolet, trajectory, agg=np.sum)
             return .0, -1
 
         res = np.zeros(len_trajectory - len_geo + 1)
@@ -97,3 +92,6 @@ class FrechetDistance(DistanceInterface):
             res[i] = similaritymeasures.frechet_dist(trj_normalized, geolet)
 
         return min(res), np.argmin(res)
+
+    def __str__(self):
+        return f"Frechet({self.n_jobs}, {self.verbose})"

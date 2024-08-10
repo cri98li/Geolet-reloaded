@@ -17,7 +17,7 @@ from TCIF.classes.T_CIF_observation import T_CIF_observations
 
 
 class CaGeoDistance(DistanceInterface):
-    def __init__(self, n_gaps=1, agg=np.sum, n_jobs=1, verbose=False, **kwargs):
+    def __init__(self, n_gaps=1, agg=cosine_distance, n_jobs=1, verbose=False, **kwargs):
         self.n_gaps = n_gaps
         self.agg = agg
         self.kwargs = kwargs
@@ -85,6 +85,9 @@ class CaGeoDistance(DistanceInterface):
                 res[i] = agg(np.abs(sub_trj_cageo - geo_cageo))
 
         return min(res), np.argmin(res)
+
+    def __str__(self):
+        return f"CaGeo({self.n_gaps}, {self.agg.__name__}, {self.n_jobs}, {self.verbose})"
 
 
 def compute_feature(trajectory, n_intervals=1, kwags=None):

@@ -6,6 +6,9 @@ import sys
 import time
 from itertools import product
 
+n_workers_per_test = 8
+os.environ["OMP_NUM_THREADS"] = f"{n_workers_per_test}"
+
 import numpy as np
 import pandas as pd
 import psutil
@@ -16,17 +19,20 @@ from benchmark.benchmark_utils import BoundedQueueProcessPoolExecutor
 from benchmark.hyperparameters import get_hyperparameters
 from geoletrld.model import Geolet
 from geoletrld.utils import Trajectories, y_from_df
+import traceback
+import warnings
+warnings.filterwarnings("ignore")
 
-os.environ["OMP_NUM_THREADS"] = "1"
 
-datasets = ["datasets/vehicles.zip", "datasets/animals.zip", "dataset/seabirds.zip"]
 
-n_workers_per_test = 8
+datasets = ["datasets/vehicles.zip", "datasets/animals.zip", "datasets/seabirds.zip"]
+
 
 def fix_hyper(hyper_dict):
     distance = hyper_dict["distance"]
     selector = hyper_dict["selector"]
     selector.distance = distance
+    selector.distance.n_jobs = n_workers_per_test
 
     return hyper_dict
 
@@ -90,7 +96,7 @@ def run_clf(hyper_set, X_train, y_train, X_test, y_test):
         })
     except Exception as e:
         print(e)
-        return res
+        return res, None, None, None
 
     return res, model, X_train_transf, X_test_transf
 
@@ -141,8 +147,11 @@ def main(MODE):
             with BoundedQueueProcessPoolExecutor(max_workers=psutil.cpu_count(logical=False) // n_workers_per_test,
                                                  max_waiting_tasks=psutil.cpu_count(logical=False) // n_workers_per_test // 2) as exe:
                 for hyper_set in table(hyper_to_test):
-                    filename = f"transformations/{MODE}/{MODE}_{dataset_name}_{hyper_set}.csv"
-                    if os.path.exists(filename):
+                    hyper_set_str = "_".join([str(el) for el in hyper_set])
+                    filename = f"{MODE}_{dataset_name}_{hyper_set_str}"
+                    filename_hash = hash(filename)
+                    path = f"transformations/{MODE}/{filename_hash}.csv"
+                    if os.path.exists(path):
                         semaphore.acquire()
                         hyper_dict = dict(zip(hyper.keys(), hyper_set))
                         table["dataset"] = dataset_name
@@ -153,7 +162,7 @@ def main(MODE):
                         continue
                     # (hyper_set, X, labels_dict:dict=None)
                     future = exe.submit(run_clu, hyper_set, trajectories)
-                    future.add_done_callback(lambda x: eval_clu(x, table, filename, hyper_set, semaphore, dataset_name))
+                    future.add_done_callback(lambda x: eval_clu(x, table, path, hyper_set, semaphore, dataset_name))
             table.close()
             del table
             print()
@@ -197,8 +206,11 @@ def main(MODE):
                                                      max_waiting_tasks=psutil.cpu_count(
                                                          logical=False) // n_workers_per_test // 2) as exe:
                     for hyper_set in table(hyper_to_test):
-                        filename = f"transformations/{MODE}/{MODE}_{dataset_name}_{hyper_set}.csv"
-                        if os.path.exists(filename):
+                        hyper_set_str = "_".join([str(el) for el in hyper_set])
+                        filename = f"{MODE}_{dataset_name}_{hyper_set_str}_{i}"
+                        filename_hash = hash(filename)
+                        path = f"transformations/{MODE}/{filename_hash}.csv"
+                        if os.path.exists(path):
                             semaphore.acquire()
                             hyper_dict = dict(zip(hyper.keys(), hyper_set))
                             table.update_from_dict(hyper_dict)
@@ -210,7 +222,7 @@ def main(MODE):
                             continue
 
                         future = exe.submit(run_clf, hyper_set, X_train_cv, y_train_cv, X_val_cv, y_val_cv)
-                        future.add_done_callback(lambda x: eval_clf(x, table, filename, hyper_set, i, semaphore,
+                        future.add_done_callback(lambda x: eval_clf(x, table, path, hyper_set, i, semaphore,
                                                                     dataset_name))
                 table.close()
                 del table

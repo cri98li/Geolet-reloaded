@@ -42,4 +42,6 @@ class GeohashPartitioner(PartitionerInterface):
 
         return candidate_geolet.remove_short_trajectories(inplace=True)
 
+    def __str__(self):
+        return f"Feature({self.precision}, {self.verbose})"
 

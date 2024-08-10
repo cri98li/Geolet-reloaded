@@ -19,6 +19,7 @@ class GapSelector(SelectorInterface):
         self.verbose = verbose
         self.n_jobs = n_jobs
         self.distance = distance
+        self.distance.n_jobs = n_jobs
 
     def select(self, geolets: Trajectories, trajectories: Trajectories = None, y: np.ndarray = None) -> \
             (Trajectories, np.ndarray):
@@ -79,4 +80,5 @@ class GapSelector(SelectorInterface):
 
         return max_gap, best_d
 
-
+    def __str__(self):
+        return f"Gap({self.k}, {self.distance}, {self.n_jobs}, {self.random_state}, {self.verbose})"

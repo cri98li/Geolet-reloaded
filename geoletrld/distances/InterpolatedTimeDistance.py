@@ -74,6 +74,9 @@ class InterpolatedTimeDistance(DistanceInterface):
 
         return min(res), res_t_start[np.argmin(res)]
 
+    def __str__(self):
+        return f"ITD({self.agg.__name__}, {self.n_jobs}, {self.verbose})"
+
 
 def _ITD(sub_trajectory: np.ndarray, geolets: np.ndarray, agg):
     sub_trajectory, _ = Trajectory._first_point_normalize(sub_trajectory)

@@ -18,6 +18,7 @@ class MutualInformationSelector(SelectorInterface):
         self.verbose = verbose
         self.n_jobs = n_jobs
         self.distance = distance
+        self.distance.n_jobs = n_jobs
 
     def select(self, geolets: Trajectories, trajectories: Trajectories = None, y: np.ndarray = None) -> \
             (Trajectories, np.ndarray):
@@ -38,3 +39,6 @@ class MutualInformationSelector(SelectorInterface):
                 res[geolet_id] = geolet
 
         return res, mi[top_k_positions]
+
+    def __str__(self):
+        return f"MI({self.k}, {self.distance}, {self.n_jobs}, {self.random_state}, {self.verbose})"

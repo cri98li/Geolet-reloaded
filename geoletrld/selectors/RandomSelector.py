@@ -17,3 +17,6 @@ class RandomSelector(SelectorInterface):
         selected_geolets_keys = random.sample(list(geolets.keys()), k=min(len(geolets), self.k))
 
         return dict([(k, geolets[k]) for k in selected_geolets_keys]), np.random.rand(self.k)
+
+    def __str__(self):
+        return f"Gap({self.k}, {self.random_state}, {self.verbose})"

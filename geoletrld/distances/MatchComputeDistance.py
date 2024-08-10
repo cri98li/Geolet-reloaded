@@ -8,10 +8,11 @@ from geoletrld.utils import Trajectory, Trajectories
 
 
 class MatchComputeDistance(DistanceInterface):
-    def __init__(self, best_fitting_distance1, best_fitting_distance2, agg=np.sum, n_jobs=1, verbose=False):
-        self.best_fitting_distance1 = best_fitting_distance1
-        self.best_fitting_distance2 = best_fitting_distance2
-        self.agg = agg
+    def __init__(self, distance1, distance2, n_jobs=1, verbose=False):
+        self.distance1 = distance1
+        self.distance1.n_jobs = n_jobs
+        self.distance2 = distance2
+        self.distance2.n_jobs = n_jobs
 
         self.n_jobs = n_jobs
         self.verbose = verbose
@@ -48,9 +49,8 @@ class MatchComputeDistance(DistanceInterface):
             distances[i], best_idx[i] = MatchComputeDistance.best_fitting(
                 trajectory=trajectory,
                 geolet=geolet.normalize(),
-                best_fitting_distance1=self.best_fitting_distance1,
-                best_fitting_distance2=self.best_fitting_distance2,
-                agg=self.agg)
+                distance1=self.distance1,
+                distance2=self.distance2)
 
         return distances, best_idx
 
@@ -58,26 +58,30 @@ class MatchComputeDistance(DistanceInterface):
     def best_fitting(
             trajectory: Trajectory,
             geolet: Trajectory,
-            best_fitting_distance1,
-            best_fitting_distance2,
-            agg=np.sum,
+            distance1,
+            distance2,
     ) -> tuple:
         len_geo = len(geolet.latitude)
         len_trajectory = len(trajectory.latitude)
 
         if len_geo > len_trajectory:
-            #return EuclideanDistance.best_fitting(geolet, trajectory, agg=np.sum)
             return .0, -1
 
-        _, idx = best_fitting_distance1(trajectory, geolet, agg=agg)
+        geolets = Trajectories()
+        geolets["demo"] = geolet
+
+        _, idx = distance1._compute_dist_geolets_trajectory(trajectory, geolet)
 
         sub_trj = Trajectory(values=trajectory.values[:, idx:idx + len_geo])
 
-        dist, _ = best_fitting_distance2(sub_trj, geolet, agg=agg)
+        dist, _ = distance2._compute_dist_geolets_trajectory(sub_trj, geolet)
 
         if not np.isfinite(dist):
             print("HERE")
 
-        dist, _ = best_fitting_distance2(sub_trj, geolet, agg=agg)
+        dist, _ = distance2(sub_trj, geolet)
 
         return dist, idx
+
+    def __str__(self):
+        return f"MatchCompute({self.distance1}, {self.distance2}, {self.n_jobs}, {self.verbose})"

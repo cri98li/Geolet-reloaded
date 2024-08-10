@@ -69,3 +69,6 @@ class EuclideanDistance(DistanceInterface):
             res[i] = agg(((trj_normalized - geolet.lat_lon) ** 2))
 
         return min(res), np.argmin(res)
+
+    def __str__(self):
+        return f"Frechet({self.agg.__name__}, {self.n_jobs}, {self.verbose})"

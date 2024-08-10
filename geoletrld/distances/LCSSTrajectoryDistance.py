@@ -9,8 +9,7 @@ from geoletrld.utils import Trajectory, Trajectories
 
 
 class LCSSTrajectoryDistance(DistanceInterface):
-    def __init__(self, agg=np.sum, max_dist=1000, max_time=60, n_jobs=1, verbose=False):
-        self.agg = agg
+    def __init__(self, max_dist=1000, max_time=60, n_jobs=1, verbose=False):
         self.max_dist = max_dist
         self.max_time = max_time
 
@@ -50,8 +49,7 @@ class LCSSTrajectoryDistance(DistanceInterface):
                 trajectory=trajectory,
                 geolet=geolet.normalize(),
                 max_dist=self.max_dist,
-                max_time=self.max_time,
-                agg=self.agg)
+                max_time=self.max_time)
 
         return distances, best_idx
 
@@ -61,7 +59,6 @@ class LCSSTrajectoryDistance(DistanceInterface):
             geolet: Trajectory,
             max_dist=1000,
             max_time=60,
-            agg=None
     ) -> tuple:
         len_geo = len(geolet.latitude)
         len_trajectory = len(trajectory.latitude)
@@ -93,3 +90,6 @@ class LCSSTrajectoryDistance(DistanceInterface):
                         len_matrix[i + 1, j + 1] = 1 + len_matrix[i, j+1]
 
         return -dist_matrix[-1, -1]/len_matrix[-1, -1], -1
+
+    def __str__(self):
+        return f"LCSS({self.max_dist}, {self.max_time}, {self.n_jobs}, {self.verbose})"

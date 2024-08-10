@@ -10,3 +10,5 @@ class SelectorInterface(ABC):
     def select(self, geolets: Trajectories, trajectories: Trajectories = None, y: np.ndarray = None) \
             -> (Trajectories, np.ndarray):
         pass
+
+

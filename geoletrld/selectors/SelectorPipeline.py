@@ -24,4 +24,10 @@ class SelectorPipeline(SelectorInterface):
 
         return selected_geolets, scores
 
+    def __str__(self):
+        s = []
+        for el in self.pipeline:
+            s.append(str(el)+", ")
+        return f"Pipe({s}[:-2])"
+
 
