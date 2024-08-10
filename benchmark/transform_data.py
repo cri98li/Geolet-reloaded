@@ -9,6 +9,10 @@ from itertools import product
 
 n_workers_per_test = 8
 os.environ["OMP_NUM_THREADS"] = f"{n_workers_per_test}"
+os.environ["OPENBLAS_NUM_THREADS"] = f"{n_workers_per_test}"
+os.environ["MKL_NUM_THREADS"] = f"{n_workers_per_test}"
+os.environ["VECLIB_MAXIMUM_THREADS"] = f"{n_workers_per_test}"
+os.environ["NUMEXPR_NUM_THREADS"] = f"{n_workers_per_test}"
 
 import numpy as np
 import pandas as pd
@@ -80,7 +84,7 @@ def eval_clu(future, table, filename, hyper_set, semaphore, dataset_name):
     semaphore.release()
 
 def run_clf(hyper_set, X_train, y_train, X_test, y_test):
-    hyper_dict = dict(zip(get_hyperparameters(-1)['clu'].keys(), hyper_set))
+    hyper_dict = dict(zip(get_hyperparameters(-1)['clf'].keys(), hyper_set))
 
     model = Geolet(**fix_hyper(hyper_dict))
     res = dict()
@@ -145,8 +149,8 @@ def main(MODE):
                                   num_decimal_places=3)
 
             semaphore = multiprocessing.Semaphore(1)
-            with BoundedQueueProcessPoolExecutor(max_workers=psutil.cpu_count(logical=False) // n_workers_per_test,
-                                                 max_waiting_tasks=psutil.cpu_count(logical=False) // n_workers_per_test // 2) as exe:
+            max_workers = max(psutil.cpu_count(logical=True) // n_workers_per_test, 1)
+            with BoundedQueueProcessPoolExecutor(max_workers=max_workers, max_waiting_tasks=max_workers) as exe:
                 for hyper_set in table(hyper_to_test):
                     hyper_set_str = "_".join([str(el) for el in hyper_set])
                     filename = f"{MODE}_{dataset_name}_{hyper_set_str}"
@@ -194,7 +198,7 @@ def main(MODE):
 
                 hyper_to_test = list(product(*hyper.values()))
 
-                max_workers = max(psutil.cpu_count(logical=False) // n_workers_per_test, 1)
+                max_workers = max(psutil.cpu_count(logical=True) // n_workers_per_test, 1)
 
                 print(f"n_parallel test: {max_workers} each using {n_workers_per_test} cores", )
                 print(f"\r\n{dataset_name}\r\n")
@@ -208,9 +212,9 @@ def main(MODE):
                 with BoundedQueueProcessPoolExecutor(max_workers=max_workers, max_waiting_tasks=max_workers) as exe:
                     for hyper_set in table(hyper_to_test):
                         hyper_set_str = "_".join([str(el) for el in hyper_set])
-                        filename = f"{MODE}_{dataset_name}_{hyper_set_str}_{i}"
+                        filename = f"{MODE}_{dataset_name}_{hyper_set_str}"
                         filename_hash = md5(filename.encode()).hexdigest()
-                        path = f"transformations/{MODE}/{filename_hash}.csv"
+                        path = f"transformations/{MODE}/{filename_hash}_{i}.csv"
                         if os.path.exists(path):
                             semaphore.acquire()
                             hyper_dict = dict(zip(hyper.keys(), hyper_set))
