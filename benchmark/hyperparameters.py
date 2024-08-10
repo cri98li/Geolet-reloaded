@@ -28,18 +28,17 @@ def get_hyperparameters(n_jobs=-1):
         [dist.LCSSTrajectoryDistance(max_dist=d, max_time=t, n_jobs=n_jobs) for d, t in product([1, 10, 100, 1000],
                                                                                                 [10, 30, 60])] + \
         [dist.RotatingGenericDistance(distance=d, n_jobs=n_jobs)
-         for d in [dist.EuclideanDistance(), dist.FrechetDistance(),
+         for d in [dist.EuclideanDistance(),
                    dist.InterpolatedTimeDistance(n_jobs=n_jobs)]] + \
         [dist.MatchComputeDistance(distance1=bf1, distance2=bf2, n_jobs=n_jobs) for bf1, bf2 in product(
             [
-                dist.RotatingGenericDistance(distance=dist.EuclideanDistance(agg=np.sum)),
                 dist.RotatingGenericDistance(distance=dist.EuclideanDistance(agg=np.mean)),
-                dist.EuclideanDistance(agg=np.sum),
                 dist.EuclideanDistance(agg=np.mean),
                 dist.FrechetDistance(),
             ],
             [
                 dist.FrechetDistance(),
+                dist.InterpolatedTimeDistance(n_jobs=n_jobs),
             ] +
             [dist.CaGeoDistance(n_gaps=gaps, agg=agg)
              for gaps, agg in product([1, 3, 5], [np.sum, cosine_distance])]
@@ -50,7 +49,7 @@ def get_hyperparameters(n_jobs=-1):
         [part.FeaturePartitioner(feature=f, threshold=t, overlapping=o)
          for f, t, o in product(
             ["time", "distance"],
-            [10, 30, 60, 100, 500],
+            [10, 60, 100, 500],
             [True]
         )] + \
         [part.FeaturePartitioner(feature=f, threshold=t, overlapping=o)
@@ -60,7 +59,7 @@ def get_hyperparameters(n_jobs=-1):
             [True]
         )] + \
         [part.NoPartitioner()] + \
-        [part.SlidingWindowPartitioner(window_size=s, overlap=o) for s, o in product([5, 10, 50, 100], [True, False])]
+        [part.SlidingWindowPartitioner(window_size=s, overlap=o) for s, o in product([5, 10, 50, 100], [1., .5])]
 
     n_geolets = [2, 5, 10, 50]
     select_hyper_unsup = \
