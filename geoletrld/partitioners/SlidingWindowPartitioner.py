@@ -9,8 +9,9 @@ from geoletrld.utils import Trajectories, Trajectory
 class SlidingWindowPartitioner(PartitionerInterface):
     def __init__(self, window_size: int | float = 100, overlap: int | float = 1, verbose: bool = False):
         self.window_size = window_size
-        if type(window_size) is int:
-            self.overlap = (window_size * overlap) // 1
+        self.overlap = overlap
+        if type(window_size) is int and type(overlap) is float:
+            self.overlap = int(window_size*overlap)
         self.verbose = verbose
 
     def transform(self, X: Trajectories[Any, Trajectory]) -> Trajectories[Any, Trajectory]:
