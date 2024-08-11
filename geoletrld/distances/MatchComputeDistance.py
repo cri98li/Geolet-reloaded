@@ -70,18 +70,17 @@ class MatchComputeDistance(DistanceInterface):
         geolets = Trajectories()
         geolets["demo"] = geolet
 
-        _, idx = distance1._compute_dist_geolets_trajectory(trajectory, geolet)
+        _, idx = distance1._compute_dist_geolets_trajectory(trajectory, geolets)
 
-        sub_trj = Trajectory(values=trajectory.values[:, idx:idx + len_geo])
+        sub_trj = Trajectory(values=trajectory.values[:, int(idx[0]):int(idx[0]) + len_geo])
 
-        dist, _ = distance2._compute_dist_geolets_trajectory(sub_trj, geolet)
+        dist, _ = distance2._compute_dist_geolets_trajectory(sub_trj, geolets)
 
-        if not np.isfinite(dist):
+        if not np.isfinite(dist[0]):
             print("HERE")
+            dist = [.0]
 
-        dist, _ = distance2(sub_trj, geolet)
-
-        return dist, idx
+        return dist[0], int(idx[0])
 
     def __str__(self):
         return f"MatchCompute({self.distance1}, {self.distance2}, {self.n_jobs}, {self.verbose})"

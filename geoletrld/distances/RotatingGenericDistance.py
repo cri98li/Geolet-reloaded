@@ -37,7 +37,10 @@ class RotatingGenericDistance(DistanceInterface):
                 ]
 
             for i, process in enumerate(tqdm(processes, disable=not self.verbose)):
-                distances[i], best_idx[i], angles[i] = process.result()
+                res = process.result()
+                distances[i], best_idx[i] = res[0], res[1]
+                if self.return_rot:
+                    angles[i] = res[2]
 
         if self.return_rot:
             return np.hstack([distances, angles]), best_idx
@@ -52,16 +55,18 @@ class RotatingGenericDistance(DistanceInterface):
             distances[i], best_idx[i], angles[i] = RotatingGenericDistance.best_fitting(
                 trajectory=trajectory,
                 geolet=geolet.normalize(),
-                best_fitting_distance=self.distance,
+                distance=self.distance,
                 return_rot=True
             )
-
-        return distances, best_idx, angles
+        if self.return_rot:
+            return distances, best_idx, angles
+        else:
+            return distances, best_idx
 
     @staticmethod
     def best_fitting(trajectory: Trajectory, geolet: Trajectory, distance, return_rot: bool = False) -> tuple:
         bounds = Bounds([0], [2 * math.pi], )
-        result = shgo(_objective_function, sampling_method="sobol", args=(trajectory, geolet), bounds=bounds)
+        result = shgo(_objective_function, sampling_method="sobol", args=(trajectory, geolet, distance), bounds=bounds)
         angle = result.x
         dist, idx = distance.best_fitting(trajectory=trajectory, geolet=rotate(geolet, angle))
 
