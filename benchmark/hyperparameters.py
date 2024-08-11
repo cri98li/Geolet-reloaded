@@ -25,8 +25,6 @@ def get_hyperparameters(n_jobs=-1):
          product([1, 3], [np.sum, cosine_distance])] + \
         [dist.FrechetDistance(n_jobs=n_jobs)] + \
         [dist.InterpolatedTimeDistance(agg=agg, n_jobs=n_jobs) for agg in [np.sum, np.mean]] + \
-        [dist.LCSSTrajectoryDistance(max_dist=d, max_time=t, n_jobs=n_jobs) for d, t in product([10, 100, 1000],
-                                                                                                [10, 30, 60])] + \
         [dist.RotatingGenericDistance(distance=d, n_jobs=n_jobs)
          for d in [dist.EuclideanDistance(), dist.InterpolatedTimeDistance(n_jobs=n_jobs)]] + \
         [dist.MatchComputeDistance(distance1=bf1, distance2=bf2, n_jobs=n_jobs) for bf1, bf2 in product(
