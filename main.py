@@ -20,6 +20,8 @@ from geoletrld.distances import (EuclideanDistance, InterpolatedTimeDistance, LC
 
 
 if __name__ == "__main__":
+    print(FeaturePartitioner(feature='time', threshold=10))
+
     df = pd.read_csv('benchmark/datasets/vehicles.zip')
     #df = pd.read_csv("datasets/animals.zip")
 
@@ -36,7 +38,7 @@ if __name__ == "__main__":
         partitioner=GeohashPartitioner(precision=7),
         selector=SelectorPipeline(
             RandomSelector(k=500),
-            MutualInformationSelector(n_jobs=8, k=30, distance=MatchComputeDistance(EuclideanDistance.best_fitting, CaGeoDistance.best_fitting)),
+            MutualInformationSelector(n_jobs=8, k=30, distance=MatchComputeDistance(EuclideanDistance(), CaGeoDistance()), verbose=True),
             #GapSelector(k=5, n_jobs=10, distance=MatchComputeDistance(EuclideanDistance.best_fitting, LCSSTrajectoryDistance.best_fitting)),
             #ClusteringSelector(
                 #KMeans(n_clusters=5), #è sbagliato?, ma funziona stranamente bene
@@ -47,8 +49,9 @@ if __name__ == "__main__":
                 #distance=LCSSTrajectoryDistance(n_jobs=10, verbose=True)
             #)
         ),
-        distance=MatchComputeDistance(EuclideanDistance.best_fitting, CaGeoDistance.best_fitting),
-        model_to_fit=RandomForestClassifier(n_estimators=500, class_weight="balanced", random_state=32),
+        #distance=MatchComputeDistance(EuclideanDistance.best_fitting, CaGeoDistance.best_fitting),
+        distance=CaGeoDistance(n_gaps=1, n_jobs=8, verbose=True),
+        model_to_fit=RandomForestClassifier(n_estimators=500, class_weight="balanced", random_state=32, n_jobs=8),
         #model_to_fit=KMeans(n_clusters=2)
     ).fit(X_train, y_train)
 

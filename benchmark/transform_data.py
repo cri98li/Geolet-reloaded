@@ -110,7 +110,7 @@ def eval_clf(future, table, filename, hyper_set, cv_idx, semaphore, dataset_name
     hyper_dict = dict(zip(get_hyperparameters(-1)['clu'].keys(), hyper_set))
     table["dataset"] = dataset_name
     table["cv_idx"] = cv_idx
-    table.update_from_dict(hyper_dict)
+    table.update_from_dict({f"hyperparameter_{k[:10]}": v for k, v in hyper_dict.items()})
     res, model, X_train_transformed, X_test_transformed = future.result()
     res.update({"dataset": dataset_name, "cv_idx": cv_idx})
 
@@ -188,6 +188,8 @@ def main(MODE):
 
             skf = StratifiedKFold(n_splits=5)
             for i, (train_index, test_index) in enumerate(skf.split(list(X_train.items()), y_train)):
+                if i != 0: continue # TODO: rimuovere
+
                 X_train_cv = [t for i, t in enumerate(X_train.items()) if i in train_index]
                 y_train_cv = [_y for i, _y in enumerate(y_train) if i in train_index]
                 X_val_cv = [t for i, t in enumerate(X_train.items()) if i in test_index]
@@ -218,7 +220,7 @@ def main(MODE):
                         if os.path.exists(path):
                             semaphore.acquire()
                             hyper_dict = dict(zip(hyper.keys(), hyper_set))
-                            table.update_from_dict(hyper_dict)
+                            table.update_from_dict({f"hyperparameter_{k[:10]}": v for k, v in hyper_dict.items()})
                             table["cv_idx"] = i
                             table["accuracy"] = "skip"
                             table["macro_f1"] = "skip"

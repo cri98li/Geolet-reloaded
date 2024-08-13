@@ -71,4 +71,4 @@ class EuclideanDistance(DistanceInterface):
         return min(res), np.argmin(res)
 
     def __str__(self):
-        return f"Frechet({self.agg.__name__}, {self.n_jobs}, {self.verbose})"
+        return f"Euclidean({self.agg.__name__}, {self.n_jobs}, {self.verbose})"
