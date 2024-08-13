@@ -42,6 +42,8 @@ def get_hyperparameters(n_jobs=-1):
 
     partition_hyper = \
         [part.GeohashPartitioner(precision=p) for p in range(4, 7 + 1)] + \
+        [part.NoPartitioner()] + \
+        [part.SlidingWindowPartitioner(window_size=s, overlap=o) for s, o in product([5, 10, 50, 100], [1., .5])] + \
         [part.FeaturePartitioner(feature=f, threshold=t, overlapping=o)
          for f, t, o in product(
             ["time", "distance"],
@@ -53,9 +55,8 @@ def get_hyperparameters(n_jobs=-1):
             ["speed", "acceleration"],
             [10, 50, 100],
             [True]
-        )] + \
-        [part.NoPartitioner()] + \
-        [part.SlidingWindowPartitioner(window_size=s, overlap=o) for s, o in product([5, 10, 50, 100], [1., .5])]
+        )]
+
 
     n_geolets = [2, 5, 10, 50]
     select_hyper_unsup = \
