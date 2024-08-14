@@ -36,23 +36,12 @@ if __name__ == "__main__":
 
     classifier = Geolet(
         partitioner=GeohashPartitioner(precision=7),
-        selector=SelectorPipeline(
-            RandomSelector(k=500),
-            MutualInformationSelector(n_jobs=8, k=30, distance=MatchComputeDistance(EuclideanDistance(), CaGeoDistance()), verbose=True),
-            #GapSelector(k=5, n_jobs=10, distance=MatchComputeDistance(EuclideanDistance.best_fitting, LCSSTrajectoryDistance.best_fitting)),
-            #ClusteringSelector(
-                #KMeans(n_clusters=5), #è sbagliato?, ma funziona stranamente bene
-                #KMedoids(n_clusters=30, metric='precomputed'),# n_jobs=9
-                #AffinityPropagation(affinity="precomputed"), agg=lambda x: -np.sum(x),
-                #OPTICS(metric="precomputed"),
-                #SpectralClustering(affinity="precomputed"), agg=lambda x: -np.sum(x), #non gira
-                #distance=LCSSTrajectoryDistance(n_jobs=10, verbose=True)
-            #)
-        ),
+        selector=MutualInformationSelector(n_jobs=8, k=30, distance=EuclideanDistance(), verbose=True),
         #distance=MatchComputeDistance(EuclideanDistance.best_fitting, CaGeoDistance.best_fitting),
-        distance=CaGeoDistance(n_gaps=1, n_jobs=8, verbose=True),
+        distance=EuclideanDistance(n_jobs=8),
         model_to_fit=RandomForestClassifier(n_estimators=500, class_weight="balanced", random_state=32, n_jobs=8),
         #model_to_fit=KMeans(n_clusters=2)
+        subset_trj_in_selection=5
     ).fit(X_train, y_train)
 
     print("Random Forest:\n", classification_report(y_test, classifier.predict(X_test)))

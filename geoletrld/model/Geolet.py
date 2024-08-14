@@ -67,14 +67,19 @@ class Geolet(BaseEstimator, ClassifierMixin, TransformerMixin):
 
         self.sub_x = copy.deepcopy(X)
         if self.subset_trj_in_selection is not None:
-            candidate_trj_to_delete = random.sample(list(self.sub_x.keys()),
-                                                    k=max(0, len(X) - self.subset_trj_in_selection))
+            candidate_trj_to_keep = random.sample(list(zip(self.sub_x.keys(), range(len(y)))),
+                                                  k=min(len(X), self.subset_trj_in_selection))
 
-            for trj_id in candidate_trj_to_delete:
-                self.sub_x.pop(trj_id)
+            candidate_trj_to_keep_keys = [x for x, _ in candidate_trj_to_keep]
+            for trj_id in X.keys():
+                if trj_id not in candidate_trj_to_keep_keys:
+                    self.sub_x.pop(trj_id)
+
+        self.sub_y = copy.deepcopy(y[[x for _, x in candidate_trj_to_keep]])
 
         self.selected_geolets, self.selected_geolets_scores = self.selector.select(geolets=self.candidate_geolets,
-                                                                                   trajectories=self.sub_x, y=y)
+                                                                                   trajectories=self.sub_x,
+                                                                                   y=self.sub_y)
 
         self.dist_matrix_fit, self.best_i_fit = self.distance.transform(trajectories=X, geolets=self.selected_geolets)
 
