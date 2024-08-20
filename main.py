@@ -16,7 +16,7 @@ from geoletrld.selectors import RandomSelector, MutualInformationSelector, Selec
 from geoletrld.utils import Trajectories, y_from_df
 from geoletrld.partitioners import NoPartitioner, GeohashPartitioner, FeaturePartitioner, SlidingWindowPartitioner
 from geoletrld.distances import (EuclideanDistance, InterpolatedTimeDistance, LCSSTrajectoryDistance, FrechetDistance,
-                                 CaGeoDistance, MatchComputeDistance)
+                                 CaGeoDistance, MatchComputeDistance, RotatingGenericDistance)
 
 
 if __name__ == "__main__":
@@ -36,12 +36,13 @@ if __name__ == "__main__":
 
     classifier = Geolet(
         partitioner=GeohashPartitioner(precision=7),
-        selector=MutualInformationSelector(n_jobs=8, k=30, distance=EuclideanDistance(), verbose=True),
-        #distance=MatchComputeDistance(EuclideanDistance.best_fitting, CaGeoDistance.best_fitting),
-        distance=EuclideanDistance(n_jobs=8),
+        selector=MutualInformationSelector(n_jobs=8, k=5, distance=EuclideanDistance(), verbose=True),
+        distance=MatchComputeDistance(EuclideanDistance(), CaGeoDistance()),
+        #distance=EuclideanDistance(n_jobs=8),
         model_to_fit=RandomForestClassifier(n_estimators=500, class_weight="balanced", random_state=32, n_jobs=8),
         #model_to_fit=KMeans(n_clusters=2)
-        subset_trj_in_selection=5
+        subset_trj_in_selection=100,
+        subset_candidate_geolet=100
     ).fit(X_train, y_train)
 
     print("Random Forest:\n", classification_report(y_test, classifier.predict(X_test)))

@@ -177,7 +177,7 @@ def main(MODE):
             df = pd.read_csv(dataset_path)
             dataset_name = dataset_path.split("/")[-1].split(".")[0]
 
-            y = y_from_df(df, tid_name="tid", y_name="class")
+            y = np.array(y_from_df(df, tid_name="tid", y_name="class"))
             trajectories = Trajectories.from_DataFrame(df, latitude="c1", longitude="c2", time="t")
 
             X_train, X_test, y_train, y_test = train_test_split(list(trajectories.items()), y, test_size=0.2,
@@ -191,9 +191,9 @@ def main(MODE):
                 if i != 0: continue # TODO: rimuovere
 
                 X_train_cv = [t for i, t in enumerate(X_train.items()) if i in train_index]
-                y_train_cv = [_y for i, _y in enumerate(y_train) if i in train_index]
+                y_train_cv = y[train_index]
                 X_val_cv = [t for i, t in enumerate(X_train.items()) if i in test_index]
-                y_val_cv = [_y for i, _y in enumerate(y_train) if i in test_index]
+                y_val_cv = y[test_index]
 
                 X_train_cv = Trajectories(X_train_cv)
                 X_val_cv = Trajectories(X_val_cv)
