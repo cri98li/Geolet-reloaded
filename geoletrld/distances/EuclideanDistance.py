@@ -66,7 +66,7 @@ class EuclideanDistance(DistanceInterface):
         res = np.zeros(len_trajectory - len_geo + 1)
         for i in range(len_trajectory - len_geo + 1):
             trj_normalized, _ = Trajectory._first_point_normalize(trajectory.lat_lon[:, i:i + len_geo])
-            res[i] = agg(((trj_normalized - geolet.lat_lon) ** 2))
+            res[i] = agg(((trj_normalized - geolet.lat_lon) ** 2))**.5
 
         return min(res), np.argmin(res)
 
