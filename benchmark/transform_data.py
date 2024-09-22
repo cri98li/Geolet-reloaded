@@ -187,8 +187,8 @@ def main(MODE):
             X_test = Trajectories(X_test)  # una volta selezionati i modelli
 
             skf = StratifiedKFold(n_splits=5)
-            for i, (train_index, test_index) in enumerate(skf.split(list(X_train.items()), y_train)):
-                if i != 0: continue # TODO: rimuovere
+            for idx_vc, (train_index, test_index) in enumerate(skf.split(list(X_train.items()), y_train)):
+                if idx_vc != 0: continue # TODO: rimuovere
 
                 X_train_cv = [t for i, t in enumerate(X_train.items()) if i in train_index]
                 y_train_cv = y[train_index]
@@ -216,12 +216,12 @@ def main(MODE):
                         hyper_set_str = "_".join([str(el) for el in hyper_set])
                         filename = f"{MODE}_{dataset_name}_{hyper_set_str}"
                         filename_hash = md5(filename.encode()).hexdigest()
-                        path = f"transformations/{MODE}/{filename_hash}_{i}.csv"
+                        path = f"transformations/{MODE}/{filename_hash}_{idx_vc}.csv"
                         if os.path.exists(path):
                             semaphore.acquire()
                             hyper_dict = dict(zip(hyper.keys(), hyper_set))
                             table.update_from_dict({f"hyperparameter_{k[:10]}": v for k, v in hyper_dict.items()})
-                            table["cv_idx"] = i
+                            table["cv_idx"] = idx_vc
                             table["accuracy"] = "skip"
                             table["macro_f1"] = "skip"
                             table.next_row()
@@ -229,7 +229,7 @@ def main(MODE):
                             continue
 
                         future = exe.submit(run_clf, hyper_set, X_train_cv, y_train_cv, X_val_cv, y_val_cv)
-                        future.add_done_callback(lambda x: eval_clf(x, table, path, hyper_set, i, semaphore,
+                        future.add_done_callback(lambda x: eval_clf(x, table, path, hyper_set, idx_vc, semaphore,
                                                                     dataset_name))
                 table.close()
                 del table
