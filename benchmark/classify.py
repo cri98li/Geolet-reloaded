@@ -1,3 +1,4 @@
+import pickle
 import time
 from glob import glob
 import os
@@ -71,17 +72,20 @@ if __name__ == '__main__':
         y = np.array(y_from_df(df, tid_name="tid", y_name="class"))
         trajectories = Trajectories.from_DataFrame(df, latitude="c1", longitude="c2", time="t")
 
-        X_train, _, y_train, y_test = train_test_split(list(trajectories.items()), y, test_size=0.2,
-                                                            random_state=42, stratify=y)
+        X_train, X_test, y_train, y_test = train_test_split(list(trajectories.items()), y, test_size=0.2,
+                                                          random_state=42, stratify=y)
+
+        X_train = Trajectories(X_train)
+        X_test = Trajectories(X_test)
 
         skf = StratifiedKFold(n_splits=5)
 
         for idx_vc, (train_index, test_index) in enumerate(skf.split(X_train, y_train)):
             if idx_vc == 0:
-                datasets_y[dataset_name] = ([], [], y_train, y_test)
+                datasets_y[dataset_name] = ([], [], X_train, y_train, X_test, y_test)
 
-            y_train_cv = y[train_index]
-            y_val_cv = y[test_index]
+            y_train_cv = y_train[train_index]
+            y_val_cv = y_train[test_index]
             datasets_y[dataset_name][0].append(y_train_cv)
             datasets_y[dataset_name][1].append(y_val_cv)
 
@@ -109,12 +113,14 @@ if __name__ == '__main__':
                     continue
 
                 X_train = np.load(exp_path.replace(".csv", "_train.npy"))
-                X_test = np.load(exp_path.replace(".csv", "_test.npy"))
+                X_val = np.load(exp_path.replace(".csv", "_test.npy"))
+                transformer = pickle.load(open(exp_path.replace(".csv", ".pickle"), "rb"))
+
                 df_res = pd.read_csv(exp_path)
                 cv_idx = df_res.cv_idx.iloc[0]
                 dataset = df_res.dataset.iloc[0]
                 table["train shape"] = X_train.shape
-                table["test shape"] = X_test.shape
+                table["val shape"] = X_val.shape
 
                 if X_train.shape[1] == 0:
                     table["output"] = "error"
@@ -122,7 +128,10 @@ if __name__ == '__main__':
                     continue
 
                 y_train = datasets_y[dataset_name][0][cv_idx]
-                y_test = datasets_y[dataset_name][1][cv_idx]
+                y_val = datasets_y[dataset_name][1][cv_idx]
+
+                X_test = datasets_y[dataset_name][4]
+                y_test = datasets_y[dataset_name][5]
 
                 clf = model_constructor(**hyper_dict)
 
@@ -130,16 +139,27 @@ if __name__ == '__main__':
                 clf.fit(X_train, y_train)
                 end = time.time()
                 df_res["clf_train_time"] = end - start
-                y_pred = clf.predict(X_test)
-                y_pred_proba = clf.predict_proba(X_test)
 
-                df_measures = pd.DataFrame.from_dict([evaluate_clf(y_pred=y_pred, y_test=y_test, y_pred_proba=y_pred_proba)])
-
+                y_pred = clf.predict(X_val)
+                y_pred_proba = clf.predict_proba(X_val)
+                df_measures = pd.DataFrame.from_dict([evaluate_clf(y_pred=y_pred, y_test=y_val, y_pred_proba=y_pred_proba)])
                 df_res[df_measures.columns] = df_measures
+
+                table["val_#classes"] = len(np.unique(y_val))
+                df_res["val_#classes"] = len(np.unique(y_val))
+
+
+                """start = time.time()
+                y_pred = clf.predict(transformer.transform(X_test))
+                end = time.time()
+                df_res["inf_time"] = end - start
+                df_measures = pd.DataFrame.from_dict([evaluate_clf(y_pred=y_pred, y_test=y_test, y_pred_proba=None)])
+                df_res[[f"test_{x}" for x in df_measures.columns]] = df_measures"""
 
                 df_res.to_csv(BASE_SAVE_PATH + filename + ".csv", index=False)
 
-                table['output'] = df_measures['macro_f1'].iloc[0]
+                table['output'] = df_res['macro_f1'].iloc[0]
+                #table['output2'] = df_res['test_macro_f1'].iloc[0]
                 table.next_row()
 
             table.close()

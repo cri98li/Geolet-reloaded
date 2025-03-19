@@ -17,14 +17,14 @@ def get_hyperparameters(n_jobs=-1):
     if n_jobs == -1:
         n_jobs = psutil.cpu_count(logical=False)
 
-    distance_agg_fun = [np.sum, np.mean]
+    distance_agg_fun = [np.sum]
 
     distance_hyper = \
         [dist.EuclideanDistance(agg=x, n_jobs=n_jobs) for x in distance_agg_fun] + \
         [dist.CaGeoDistance(n_gaps=gaps, agg=agg, n_jobs=n_jobs) for gaps, agg in
          product([1, 3], [np.sum, cosine_distance])] + \
         [dist.FrechetDistance(n_jobs=n_jobs)] + \
-        [dist.InterpolatedTimeDistance(agg=agg, n_jobs=n_jobs) for agg in [np.sum, np.mean]] + \
+        [dist.InterpolatedTimeDistance(agg=agg, n_jobs=n_jobs) for agg in distance_agg_fun] + \
         [dist.RotatingGenericDistance(distance=d, n_jobs=n_jobs)
          for d in [dist.EuclideanDistance(), dist.InterpolatedTimeDistance(n_jobs=n_jobs)]] + \
         [dist.MatchComputeDistance(distance1=bf1, distance2=bf2, n_jobs=n_jobs) for bf1, bf2 in product(

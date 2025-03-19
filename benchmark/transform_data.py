@@ -191,16 +191,16 @@ def main(MODE):
                 if idx_vc != 0: continue # TODO: rimuovere
 
                 X_train_cv = [t for i, t in enumerate(X_train.items()) if i in train_index]
-                y_train_cv = y[train_index]
+                y_train_cv = y_train[train_index]
                 X_val_cv = [t for i, t in enumerate(X_train.items()) if i in test_index]
-                y_val_cv = y[test_index]
+                y_val_cv = y_train[test_index]
 
                 X_train_cv = Trajectories(X_train_cv)
                 X_val_cv = Trajectories(X_val_cv)
 
                 hyper_to_test = list(product(*hyper.values()))
 
-                max_workers = max(psutil.cpu_count(logical=True) // n_workers_per_test, 1)
+                max_workers = max(psutil.cpu_count(logical=True) // (n_workers_per_test//2), 1)
 
                 print(f"n_parallel test: {max_workers} each using {n_workers_per_test} cores", )
                 print(f"\r\n{dataset_name}\r\n")
