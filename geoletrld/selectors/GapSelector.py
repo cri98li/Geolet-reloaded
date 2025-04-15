@@ -29,17 +29,24 @@ class GapSelector(SelectorInterface):
         dist_matrix = compute_distance_selector(geolets=geolets, trajectories=trajectories, n_jobs=self.n_jobs,
                                                 verbose=self.verbose, distance=self.distance)#geo x trj
 
+        return self._select_loop(self.k, dist_matrix, geolets)
+
+
+    @classmethod
+    def _select_loop(cls, k, dist_matrix, geolets):
         selected_geolets_position = set()
         selected_geolets_gap_scores = []
         prec_dist_matrix_size = (None, None)
-        while len(selected_geolets_position) < self.k:
+
+        while len(selected_geolets_position) < k:
             if prec_dist_matrix_size == dist_matrix.shape:
                 break
             prec_dist_matrix_size = dist_matrix.shape
         #for i in range(self.k):
             gaps = np.zeros((dist_matrix.shape[1], ))
+            gaps_value = np.zeros((dist_matrix.shape[1], ))
             for geo_idx in range(dist_matrix.shape[1]):
-                gaps[geo_idx], _ = self.__compute_gap(dist_matrix[:, geo_idx])
+                gaps[geo_idx], gaps_value[geo_idx] = cls.__compute_gap(k, dist_matrix[:, geo_idx])
 
             if max(gaps) == -np.inf:
                 warnings.warn(f"Early stopping with {len(selected_geolets_position)} geolet")
@@ -47,9 +54,14 @@ class GapSelector(SelectorInterface):
 
             selected_geolets_position.add(np.argmax(gaps))
             selected_geolets_gap_scores.append(max(gaps))
-            threshold = np.mean(dist_matrix[:, np.argmax(gaps)]) + np.std(dist_matrix[:, np.argmax(gaps)])
+            threshold_distance = gaps_value[np.argmax(gaps)]
+            threshold = np.mean(
+                dist_matrix[dist_matrix[:, np.argmax(gaps)] < threshold_distance, np.argmax(gaps)]
+            ) + np.std(
+                dist_matrix[dist_matrix[:, np.argmax(gaps)] < threshold_distance, np.argmax(gaps)]
+            )
             rows_to_keep = dist_matrix[:, np.argmax(gaps)] >= threshold
-            dist_matrix = dist_matrix[rows_to_keep]
+            dist_matrix = np.delete(dist_matrix[rows_to_keep], np.argmax(gaps), axis=1)
 
 
         res = Trajectories()
@@ -59,8 +71,9 @@ class GapSelector(SelectorInterface):
 
         return res, np.array(selected_geolets_gap_scores)
 
-    def __compute_gap(self, dist_vector):
-        ordered_distances = np.argsort(dist_vector)
+    @classmethod
+    def __compute_gap(cls, k, dist_vector):
+        ordered_distances = dist_vector[np.argsort(dist_vector)]
         len_distances = len(dist_vector)
         max_gap = -np.inf
         best_d = -1
@@ -68,7 +81,7 @@ class GapSelector(SelectorInterface):
             D_A = ordered_distances[:i+1]
             D_B = ordered_distances[i+1:]
             ratio = len(D_A)/len(D_B)
-            if 1/self.k < ratio and ratio < 1-1/self.k:
+            if 1./k < ratio < 1-(1./k):
                 mean_a = np.mean(D_A)
                 mean_b = np.mean(D_B)
                 std_a = np.std(D_A)

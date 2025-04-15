@@ -1,3 +1,5 @@
+import time
+
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -35,15 +37,22 @@ if __name__ == "__main__":
     X_test = Trajectories([(k, trajectories[k]) for k in X_test])
 
     classifier = Geolet(
-        partitioner=GeohashPartitioner(precision=7),
-        selector=MutualInformationSelector(n_jobs=8, k=5, distance=EuclideanDistance(), verbose=True),
-        distance=MatchComputeDistance(EuclideanDistance(), CaGeoDistance()),
-        #distance=EuclideanDistance(n_jobs=8),
+        partitioner=GeohashPartitioner(precision=7, verbose=True),
+        selector=GapSelector(k=10, n_jobs=8),
+        #selector=MutualInformationSelector(n_jobs=8, k=5, distance=RotatingGenericDistance(EuclideanDistance(), n_jobs=8), verbose=True),
+        #distance=MatchComputeDistance(EuclideanDistance(), CaGeoDistance()),
+        #distance=RotatingGenericDistance(EuclideanDistance(), n_jobs=8),
+        distance=EuclideanDistance(n_jobs=8),
         model_to_fit=RandomForestClassifier(n_estimators=500, class_weight="balanced", random_state=32, n_jobs=8),
-        #model_to_fit=KMeans(n_clusters=2)
+        #model_to_fit=KMeans(n_clusters=2),
         subset_trj_in_selection=100,
-        subset_candidate_geolet=100
-    ).fit(X_train, y_train)
+        subset_candidate_geolet=200
+    )
+
+    start = time.time()
+    classifier.fit(X_train, y_train)
+    end = time.time()
+    print("Training took {} seconds".format(end-start))
 
     print("Random Forest:\n", classification_report(y_test, classifier.predict(X_test)))
     #print(silhouette_score(classifier.transform(X_train), classifier.predict(X_train)))

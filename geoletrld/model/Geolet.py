@@ -45,6 +45,9 @@ class Geolet(BaseEstimator, ClassifierMixin, TransformerMixin):
         self.selected_geolets = None
 
     def fit(self, X: Trajectories, y: np.ndarray = None):
+        if y is None:
+            y = np.array([-1]*len(X))
+
         if self.subset_trj_in_selection is not None and type(self.subset_trj_in_selection) is float:
             self.subset_trj_in_selection = int(len(X) * self.subset_trj_in_selection)
 
@@ -66,6 +69,7 @@ class Geolet(BaseEstimator, ClassifierMixin, TransformerMixin):
                 self.candidate_geolets.pop(geo_id)
 
         self.sub_x = copy.deepcopy(X)
+        self.sub_y = copy.deepcopy(y)
         if self.subset_trj_in_selection is not None:
             candidate_trj_to_keep = random.sample(list(zip(self.sub_x.keys(), range(len(y)))),
                                                   k=min(len(X), self.subset_trj_in_selection))
@@ -75,15 +79,15 @@ class Geolet(BaseEstimator, ClassifierMixin, TransformerMixin):
                 if trj_id not in candidate_trj_to_keep_keys:
                     self.sub_x.pop(trj_id)
 
-        self.sub_y = copy.deepcopy(y[[x for _, x in candidate_trj_to_keep]])
+            self.sub_y = copy.deepcopy(y[[x for _, x in candidate_trj_to_keep]])
 
         self.selected_geolets, self.selected_geolets_scores = self.selector.select(geolets=self.candidate_geolets,
                                                                                    trajectories=self.sub_x,
                                                                                    y=self.sub_y)
 
-        self.dist_matrix_fit, self.best_i_fit = self.distance.transform(trajectories=X, geolets=self.selected_geolets)
-
         if self.model_to_fit is not None:
+            self.dist_matrix_fit, self.best_i_fit = self.distance.transform(trajectories=X,
+                                                                            geolets=self.selected_geolets)
             self.model_to_fit.fit(X=self.dist_matrix_fit, y=y)
 
         return self

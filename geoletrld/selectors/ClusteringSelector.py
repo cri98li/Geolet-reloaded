@@ -31,10 +31,14 @@ class ClusteringSelector(SelectorInterface):
         dist_matrix = compute_symmetric_distance_selector(geolets=geolets, n_jobs=self.n_jobs, verbose=self.verbose,
                                                           distance=self.distance)
 
+        self.dist_matrix = dist_matrix
         if self.use_sim:
             dist_matrix *= -1
 
-        self.labels = self.clustering_fun.fit_predict(dist_matrix)
+        if self.clustering_fun is not None:
+            self.labels = self.clustering_fun.fit_predict(dist_matrix)
+        else:
+            self.labels = np.zeros((len(dist_matrix),))
 
         self.intra_cluster_distance = np.zeros((len(geolets),))
 

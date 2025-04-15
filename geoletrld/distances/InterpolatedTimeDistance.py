@@ -8,8 +8,9 @@ from geoletrld.utils import Trajectory, Trajectories
 
 
 class InterpolatedTimeDistance(DistanceInterface):
-    def __init__(self, agg=np.sum, n_jobs=1, verbose=False):
+    def __init__(self, agg=np.sum, shape_error='ignore', n_jobs=1, verbose=False):
         self.agg = agg
+        self.shape_error = shape_error
 
         self.n_jobs = n_jobs
         self.verbose = verbose

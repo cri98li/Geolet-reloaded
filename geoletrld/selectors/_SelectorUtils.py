@@ -20,7 +20,7 @@ def compute_distance_selector(geolets: Trajectories, trajectories: Trajectories 
         for i, process in enumerate(tqdm(processes, disable=not verbose, desc="Retrieving task")):
             dist_matrix[:, i] = process.result()
 
-        executor.shutdown(wait=True)
+        executor.shutdown(wait=False)
     else:
         for i, geolet in enumerate(tqdm(geolets.values(), disable=not verbose, desc="Computing distances")):
             dist_matrix[:, i] = _compute_distances_selector(distance, geolet, trajectories)

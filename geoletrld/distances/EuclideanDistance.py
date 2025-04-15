@@ -8,8 +8,9 @@ from geoletrld.utils import Trajectory, Trajectories
 
 
 class EuclideanDistance(DistanceInterface):
-    def __init__(self, agg=np.sum, n_jobs=1, verbose=False):
+    def __init__(self, agg=np.sum, shape_error='ignore', n_jobs=1, verbose=False):
         self.agg = agg
+        self.shape_error = shape_error
 
         self.n_jobs = n_jobs
         self.verbose = verbose
@@ -46,7 +47,9 @@ class EuclideanDistance(DistanceInterface):
             distances[i], best_idx[i] = EuclideanDistance.best_fitting(
                 trajectory=trajectory,
                 geolet=geolet.normalize(),
-                agg=self.agg)
+                agg=self.agg,
+                shape_error=self.shape_error
+            )
 
         return distances, best_idx
 
@@ -54,14 +57,17 @@ class EuclideanDistance(DistanceInterface):
     def best_fitting(
             trajectory: Trajectory,
             geolet: Trajectory,
-            agg=np.sum
+            agg=np.sum,
+            shape_error='ignore'
     ) -> tuple:
         len_geo = len(geolet.latitude)
         len_trajectory = len(trajectory.latitude)
 
         if len_geo > len_trajectory:
-            #return EuclideanDistance.best_fitting(geolet, trajectory, agg=np.sum)
-            return .0, -1
+            if shape_error == 'ignore':
+                return .0, -1
+            elif shape_error == 'invert':
+                return EuclideanDistance.best_fitting(geolet, trajectory, agg=agg)
 
         res = np.zeros(len_trajectory - len_geo + 1)
         for i in range(len_trajectory - len_geo + 1):
